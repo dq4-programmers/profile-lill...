@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absensi Kelas - Latar Belakang Gunung Merapi</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            /* Menggunakan gambar ilustrasi Gunung Merapi dari Unsplash sebagai latar belakang */
+            background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), 
+                        url('https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.92);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            backdrop-filter: blur(5px);
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 15px;
+        }
+        header h1 {
+            color: #2c3e50;
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+        }
+        header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        .meta-info {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        .table-responsive {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: #fff;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: center;
+            border: 1px solid #bdc3c7;
+        }
+        th {
+            background-color: #2c3e50;
+            color: #fff;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        tr:hover {
+            background-color: #f1f2f6;
+        }
+        .nama-siswa {
+            text-align: left;
+            font-weight: 500;
+        }
+        .radio-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        .radio-label input {
+            cursor: pointer;
+            accent-color: #2c3e50;
+            width: 16px;
+            height: 16px;
+        }
+        .btn-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .btn-submit {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+            transition: all 0.3s ease;
+        }
+        .btn-submit:hover {
+            background-color: #219653;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+        }
+        .btn-submit:active {
+            transform: translateY(1px);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>SISTEM ABSENSI KELAS</h1>
+        <p>Tahun Ajaran 2026/2027</p>
+    </header>
+
+    <div class="meta-info">
+        <div id="tanggal-hari-ini">Tanggal: -</div>
+        <div>Total Siswa: 50 Anak</div>
+    </div>
+
+    <form id="form-absensi" onsubmit="simpanAbsensi(event)">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 8%;">No</th>
+                        <th style="width: 12%;">NIS</th>
+                        <th style="width: 40%;">Nama Lengkap Siswa</th>
+                        <th style="width: 40%;">Status Kehadiran</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>1001</td>
+                        <td class="nama-siswa">Siswa / Siswi 1</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_1" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_1" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_1" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_1" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>1002</td>
+                        <td class="nama-siswa">Siswa / Siswi 2</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_2" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_2" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_2" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_2" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>1003</td>
+                        <td class="nama-siswa">Siswa / Siswi 3</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_3" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_3" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_3" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_3" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>1004</td>
+                        <td class="nama-siswa">Siswa / Siswi 4</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_4" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_4" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_4" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_4" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td>1005</td>
+                        <td class="nama-siswa">Siswa / Siswi 5</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_5" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_5" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_5" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_5" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>6</td>
+                        <td>1006</td>
+                        <td class="nama-siswa">Siswa / Siswi 6</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_6" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_6" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_6" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_6" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>7</td>
+                        <td>1007</td>
+                        <td class="nama-siswa">Siswa / Siswi 7</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_7" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_7" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_7" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_7" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>8</td>
+                        <td>1008</td>
+                        <td class="nama-siswa">Siswa / Siswi 8</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_8" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_8" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_8" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_8" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>9</td>
+                        <td>1009</td>
+                        <td class="nama-siswa">Siswa / Siswi 9</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_9" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_9" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_9" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_9" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>10</td>
+                        <td>1010</td>
+                        <td class="nama-siswa">Siswa / Siswi 10</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_10" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_10" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_10" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_10" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>11</td>
+                        <td>1011</td>
+                        <td class="nama-siswa">Siswa / Siswi 11</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_11" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_11" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_11" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_11" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>12</td>
+                        <td>1012</td>
+                        <td class="nama-siswa">Siswa / Siswi 12</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_12" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_12" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_12" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_12" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>13</td>
+                        <td>1013</td>
+                        <td class="nama-siswa">Siswa / Siswi 13</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_13" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_13" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_13" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_13" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>14</td>
+                        <td>1014</td>
+                        <td class="nama-siswa">Siswa / Siswi 14</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_14" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_14" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_14" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_14" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>15</td>
+                        <td>1015</td>
+                        <td class="nama-siswa">Siswa / Siswi 15</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_15" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_15" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_15" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_15" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>16</td>
+                        <td>1016</td>
+                        <td class="nama-siswa">Siswa / Siswi 16</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_16" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_16" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_16" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_16" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>17</td>
+                        <td>1017</td>
+                        <td class="nama-siswa">Siswa / Siswi 17</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_17" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_17" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_17" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_17" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>18</td>
+                        <td>1018</td>
+                        <td class="nama-siswa">Siswa / Siswi 18</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_18" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_18" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_18" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_18" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>19</td>
+                        <td>1019</td>
+                        <td class="nama-siswa">Siswa / Siswi 19</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_19" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_19" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_19" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_19" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>20</td>
+                        <td>1020</td>
+                        <td class="nama-siswa">Siswa / Siswi 20</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_20" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_20" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_20" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_20" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>21</td>
+                        <td>1021</td>
+                        <td class="nama-siswa">Siswa / Siswi 21</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_21" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_21" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_21" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_21" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>22</td>
+                        <td>1022</td>
+                        <td class="nama-siswa">Siswa / Siswi 22</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_22" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_22" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_22" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_22" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>23</td>
+                        <td>1023</td>
+                        <td class="nama-siswa">Siswa / Siswi 23</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_23" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_23" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_23" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_23" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>24</td>
+                        <td>1024</td>
+                        <td class="nama-siswa">Siswa / Siswi 24</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_24" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_24" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_24" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_24" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>25</td>
+                        <td>1025</td>
+                        <td class="nama-siswa">Siswa / Siswi 25</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_25" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_25" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_25" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_25" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>26</td>
+                        <td>1026</td>
+                        <td class="nama-siswa">Siswa / Siswi 26</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_26" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_26" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_26" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_26" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>27</td>
+                        <td>1027</td>
+                        <td class="nama-siswa">Siswa / Siswi 27</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_27" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_27" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_27" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_27" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>28</td>
+                        <td>1028</td>
+                        <td class="nama-siswa">Siswa / Siswi 28</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_28" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_28" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_28" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_28" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>29</td>
+                        <td>1029</td>
+                        <td class="nama-siswa">Siswa / Siswi 29</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_29" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_29" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_29" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_29" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>30</td>
+                        <td>1030</td>
+                        <td class="nama-siswa">Siswa / Siswi 30</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_30" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_30" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_30" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_30" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>31</td>
+                        <td>1031</td>
+                        <td class="nama-siswa">Siswa / Siswi 31</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_31" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_31" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_31" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_31" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>32</td>
+                        <td>1032</td>
+                        <td class="nama-siswa">Siswa / Siswi 32</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_32" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_32" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_32" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_32" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>33</td>
+                        <td>1033</td>
+                        <td class="nama-siswa">Siswa / Siswi 33</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_33" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_33" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_33" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_33" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>34</td>
+                        <td>1034</td>
+                        <td class="nama-siswa">Siswa / Siswi 34</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_34" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_34" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_34" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_34" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>35</td>
+                        <td>1035</td>
+                        <td class="nama-siswa">Siswa / Siswi 35</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_35" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_35" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_35" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_35" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>36</td>
+                        <td>1036</td>
+                        <td class="nama-siswa">Siswa / Siswi 36</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_36" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_36" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_36" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_36" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>37</td>
+                        <td>1037</td>
+                        <td class="nama-siswa">Siswa / Siswi 37</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_37" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_37" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_37" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_37" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>38</td>
+                        <td>1038</td>
+                        <td class="nama-siswa">Siswa / Siswi 38</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_38" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_38" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_38" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_38" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>39</td>
+                        <td>1039</td>
+                        <td class="nama-siswa">Siswa / Siswi 39</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_39" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_39" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_39" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_39" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>40</td>
+                        <td>1040</td>
+                        <td class="nama-siswa">Siswa / Siswi 40</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_40" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_40" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_40" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_40" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>41</td>
+                        <td>1041</td>
+                        <td class="nama-siswa">Siswa / Siswi 41</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_41" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_41" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_41" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_41" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>42</td>
+                        <td>1042</td>
+                        <td class="nama-siswa">Siswa / Siswi 42</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_42" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_42" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_42" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_42" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>43</td>
+                        <td>1043</td>
+                        <td class="nama-siswa">Siswa / Siswi 43</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_43" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_43" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_43" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_43" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>44</td>
+                        <td>1044</td>
+                        <td class="nama-siswa">Siswa / Siswi 44</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_44" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_44" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_44" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_44" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>45</td>
+                        <td>1045</td>
+                        <td class="nama-siswa">Siswa / Siswi 45</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_45" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_45" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_45" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_45" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>46</td>
+                        <td>1046</td>
+                        <td class="nama-siswa">Siswa / Siswi 46</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_46" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_46" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_46" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_46" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>47</td>
+                        <td>1047</td>
+                        <td class="nama-siswa">Siswa / Siswi 47</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_47" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_47" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_47" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_47" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>48</td>
+                        <td>1048</td>
+                        <td class="nama-siswa">Siswa / Siswi 48</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_48" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_48" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_48" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_48" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>49</td>
+                        <td>1049</td>
+                        <td class="nama-siswa">Siswa / Siswi 49</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_49" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_49" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_49" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_49" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>50</td>
+                        <td>1050</td>
+                        <td class="nama-siswa">Siswa / Siswi 50</td>
+                        <td>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_50" value="Hadir" checked> Hadir
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_50" value="Sakit"> Sakit
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_50" value="Izin"> Izin
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="absen_50" value="Alpa"> Alpa
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="btn-container">
+            <button type="submit" class="btn-submit">Simpan Data Absensi</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Menampilkan tanggal hari ini secara otomatis
+    const opsiTanggal = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('tanggal-hari-ini').textContent = 'Tanggal: ' + new Date().toLocaleDateString('id-ID', opsiTanggal);
+
+    function simpanAbsensi(event) {
+        event.preventDefault();
+        alert('Data absensi untuk 50 anak berhasil disimpan secara lokal!');
+    }
+</script>
+
+</body>
+</html>
