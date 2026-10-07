@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>F-35 Dogfight 3D</title>
+<style>
+  body { margin:0; overflow:hidden; background:#000; font-family:Arial; }
+  #hud {
+    position:absolute; top:0; left:0; width:100%; height:100%;
+    pointer-events:none; color:#0f0; text-shadow:0 0 6px #0f0;
+  }
+  .panel { position:absolute; padding:10px; font-size:14px; }
+  #topLeft { top:10px; left:10px; }
+  #topRight { top:10px; right:10px; text-align:right; }
+  #bottom { bottom:10px; left:10px; }
+  #center {
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    color:#0f0; font-size:18px; text-align:center;
+  }
+  #radar {
+    position:absolute; bottom:10px; right:10px;
+    width:180px; height:180px; border:2px solid #0f0;
+    border-radius:50%; background:rgba(0,30,0,0.5);
+  }
+  #startScreen {
+    position:absolute; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.85); color:#0f0; display:flex;
+    flex-direction:column; justify-content:center; align-items:center;
+    z-index:10; font-size:20px;
+  }
+  #startScreen button {
+    margin-top:20px; padding:15px 40px; font-size:20px;
+    background:#0f0; color:#000; border:none; cursor:pointer;
+    border-radius:8px; font-weight:bold;
+  }
+</style>
+</head>
+<body>
+
+<div id="startScreen">
+  <h1>F-35 LIGHTNING II — DOGFIGHT 3D</h1>
+  <p>WASD = Gerak | Mouse = Arah | Klik Kiri = Tembak | Spasi = Rudal | R = Radar Lock</p>
+  <p>Target: Hancurkan semua pesawat musuh!</p>
+  <button id="startBtn">MULAI MISI</button>
+</div>
+
+<div id="hud">
+  <div id="topLeft" class="panel">
+    <div>AMUNISI: <span id="ammo">500</span></div>
+    <div>RUDAL: <span id="missiles">20</span></div>
+    <div>HP: <span id="hp">100</span></div>
+  </div>
+  <div id="topRight" class="panel">
+    <div>MUSUH: <span id="enemyCount">5</span></div>
+    <div>SKOR: <span id="score">0</span></div>
+    <div>LOCK: <span id="lockStatus">--</span></div>
+  </div>
+  <div id="bottom" class="panel">Kecepatan: <span id="speed">0</span> kts</div>
+  <div id="center"></div>
+  <canvas id="radar"></canvas>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ========== SETUP ==========
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0xaaccff, 0.0015);
+
+const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 5000);
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+document.body.appendChild(renderer.domElement);
+
+// Cahaya
+const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+sun.position.set(500, 800, 300);
+scene.add(sun);
+scene.add(new THREE.AmbientLight(0x88aaff, 0.8));
+scene.add(new THREE.HemisphereLight(0xffffff, 0x334455, 0.6));
+
+// ========== BACKGROUND AWAN HD ==========
+// Sky gradient
+const skyGeo = new THREE.SphereGeometry(2500, 32, 32);
+const skyMat = new THREE.ShaderMaterial({
+  side: THREE.BackSide,
+  uniforms: {
+    top: {value: new THREE.Color(0x0a3a7a)},
+    bottom: {value: new THREE.Color(0xbbddff)}
+  },
+  vertexShader: `varying vec3 vP; void main(){ vP=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+  fragmentShader: `varying vec3 vP; uniform vec3 top; uniform vec3 bottom;
+    void main(){ float h = normalize(vP).y; gl_FragColor = vec4(mix(bottom, top, max(h,0.0)),1.0);}`
+});
+scene.add(new THREE.Mesh(skyGeo, skyMat));
+
+// Awan partikel HD
+function makeCloudTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(128,128,0,128,128,128);
+  g.addColorStop(0,'rgba(255,255,255,1)');
+  g.addColorStop(0.4,'rgba(255,255,255,0.8)');
+  g.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,256,256);
+  return new THREE.CanvasTexture(c);
+}
+const cloudTex = makeCloudTexture();
+const cloudGroup = new THREE.Group();
+for (let i = 0; i < 600; i++) {
+  const s = 80 + Math.random()*300;
+  const mat = new THREE.SpriteMaterial({
+    map: cloudTex, transparent:true, opacity:0.35+Math.random()*0.4,
+    depthWrite:false, color: 0xffffff
+  });
+  const sp = new THREE.Sprite(mat);
+  sp.position.set(
+    (Math.random()-0.5)*4000,
+    200 + Math.random()*1500,
+    (Math.random()-0.5)*4000
+  );
+  sp.scale.set(s, s*0.6, 1);
+  cloudGroup.add(sp);
+}
+scene.add(cloudGroup);
+
+// ========== PESAWAT F-35 (player) ==========
+function createF35(color=0x556677) {
+  const g = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({color, metalness:0.7, roughness:0.4});
+  const dark = new THREE.MeshStandardMaterial({color:0x222222, metalness:0.9, roughness:0.3});
+  const glass = new THREE.MeshStandardMaterial({color:0x224466, metalness:1, roughness:0.1, transparent:true, opacity:0.7});
+
+  // Body utama
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.9,5,8), mat);
+  body.rotation.x = Math.PI/2;
+  g.add(body);
+
+  // Hidung
+  const nose = new THREE.Mesh(new THREE.ConeGeometry(0.6,1.5,8), mat);
+  nose.rotation.x = -Math.PI/2;
+  nose.position.z = -3.2;
+  g.add(nose);
+
+  // Cockpit
+  const cockpit = new THREE.Mesh(new THREE.SphereGeometry(0.7,8,8), glass);
+  cockpit.scale.set(1,0.6,1.5);
+  cockpit.position.set(0,0.4,-0.8);
+  g.add(cockpit);
+
+  // Sayap delta
+  const wingShape = new THREE.Shape();
+  wingShape.moveTo(0,0);
+  wingShape.lineTo(4,1.5);
+  wingShape.lineTo(4,2);
+  wingShape.lineTo(0.5,3);
+  wingShape.lineTo(0,3);
+  const wingGeo = new THREE.ExtrudeGeometry(wingShape,{depth:0.15, bevelEnabled:false});
+  const wingR = new THREE.Mesh(wingGeo, mat);
+  wingR.rotation.x = Math.PI/2;
+  wingR.position.set(0.6,0,0);
+  g.add(wingR);
+
+  const wingL = wingR.clone();
+  wingL.scale.x = -1;
+  wingL.position.x = -0.6;
+  g.add(wingL);
+
+  // Ekor
+  const tail = new THREE.Mesh(new THREE.BoxGeometry(3,0.1,1.2), mat);
+  tail.position.set(0,0,2);
+  g.add(tail);
+
+  // Sirip ekor
+  const fin = new THREE.Mesh(new THREE.BoxGeometry(0.1,1.2,1), mat);
+  fin.position.set(0.6,0.6,2);
+  fin.rotation.z = -0.3;
+  g.add(fin);
+  const fin2 = fin.clone();
+  fin2.position.x = -0.6;
+  fin2.rotation.z = 0.3;
+  g.add(fin2);
+
+  // Nozzle
+  const noz = new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.6,0.8,8), dark);
+  noz.rotation.x = Math.PI/2;
+  noz.position.z = 2.6;
+  g.add(noz);
+
+  return g;
+}
+
+const player = createF35(0x445566);
+player.position.set(0, 500, 0);
+scene.add(player);
+
+// ========== MUSUH ==========
+const enemies = [];
+function spawnEnemy() {
+  const e = createF35(0x882222);
+  e.position.set(
+    (Math.random()-0.5)*2000,
+    300 + Math.random()*600,
+    (Math.random()-0.5)*2000
+  );
+  e.userData = {
+    hp: 3,
+    speed: 80 + Math.random()*60,
+    dir: new THREE.Vector3(Math.random()-0.5, 0, Math.random()-0.5).normalize(),
+    changeTimer: 0
+  };
+  scene.add(e);
+  enemies.push(e);
+}
+for (let i=0;i<5;i++) spawnEnemy();
+
+// ========== PROJECTILES ==========
+const bullets = [];
+const missiles = [];
+
+function fireBullet() {
+  if (state.ammo <= 0) return;
+  state.ammo--;
+  const geo = new THREE.SphereGeometry(0.3,6,6);
+  const mat = new THREE.MeshBasicMaterial({color:0xffff00});
+  const b = new THREE.Mesh(geo, mat);
+  const dir = new THREE.Vector3(0,0,-1).applyQuaternion(player.quaternion);
+  b.position.copy(player.position).add(dir.clone().multiplyScalar(4));
+  b.userData.vel = dir.multiplyScalar(600);
+  scene.add(b);
+  bullets.push(b);
+}
+
+function fireMissile() {
+  if (state.missiles <= 0 || !state.lockedTarget) return;
+  state.missiles--;
+  const geo = new THREE.CylinderGeometry(0.3,0.3,2,6);
+  const mat = new THREE.MeshStandardMaterial({color:0xff6600, emissive:0xff3300});
+  const m = new THREE.Mesh(geo, mat);
+  m.rotation.x = Math.PI/2;
+  const dir = new THREE.Vector3(0,0,-1).applyQuaternion(player.quaternion);
+  m.position.copy(player.position).add(dir.clone().multiplyScalar(4));
+  m.userData = {
+    vel: dir.multiplyScalar(200),
+    target: state.lockedTarget,
+    life: 8
+  };
+  scene.add(m);
+  missiles.push(m);
+}
+
+// ========== STATE ==========
+const state = {
+  ammo: 500,
+  missiles: 20,
+  hp: 100,
+  score: 0,
+  speed: 0,
+  lockedTarget: null,
+  keys: {},
+  mouseX: 0,
+  mouseY: 0,
+  running: false
+};
+
+// ========== INPUT ==========
+document.addEventListener('keydown', e => {
+  state.keys[e.key.toLowerCase()] = true;
+  if (e.key === ' ') e.preventDefault();
+});
+document.addEventListener('keyup', e => state.keys[e.key.toLowerCase()] = false);
+
+document.addEventListener('mousemove', e => {
+  state.mouseX = (e.clientX/innerWidth - 0.5) * 2;
+  state.mouseY = (e.clientY/innerHeight - 0.5) * 2;
+});
+
+document.addEventListener('mousedown', e => {
+  if (!state.running) return;
+  if (e.button === 0) fireBullet();
+  if (e.button === 2) fireMissile();
+});
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+// Auto fire dengan klik tahan
+let firing = false;
+document.addEventListener('mousedown', e => { if (e.button===0) firing = true; });
+document.addEventListener('mouseup', e => { if (e.button===0) firing = false; });
+
+// ========== RADAR ==========
+const radarCanvas = document.getElementById('radar');
+radarCanvas.width = 180;
+radarCanvas.height = 180;
+const radarCtx = radarCanvas.getContext('2d');
+
+function drawRadar() {
+  const cx = 90, cy = 90, r = 85;
+  radarCtx.clearRect(0,0,180,180);
+  radarCtx.fillStyle = 'rgba(0,30,0,0.6)';
+  radarCtx.beginPath();
+  radarCtx.arc(cx,cy,r,0,Math.PI*2);
+  radarCtx.fill();
+  radarCtx.strokeStyle = '#0f0';
+  radarCtx.lineWidth = 1;
+  for (let i=1;i<=3;i++) {
+    radarCtx.beginPath();
+    radarCtx.arc(cx,cy,r*i/3,0,Math.PI*2);
+    radarCtx.stroke();
+  }
+  radarCtx.beginPath();
+  radarCtx.moveTo(cx,cy-r); radarCtx.lineTo(cx,cy+r);
+  radarCtx.moveTo(cx-r,cy); radarCtx.lineTo(cx+r,cy);
+  radarCtx.stroke();
+
+  // Player di tengah (segitiga)
+  radarCtx.fillStyle = '#0f0';
+  radarCtx.beginPath();
+  radarCtx.moveTo(cx,cy-6);
+  radarCtx.lineTo(cx-5,cy+5);
+  radarCtx.lineTo(cx+5,cy+5);
+  radarCtx.closePath();
+  radarCtx.fill();
+
+  // Musuh
+  const range = 2500;
+  enemies.forEach(e => {
+    const dx = e.position.x - player.position.x;
+    const dz = e.position.z - player.position.z;
+    const dist = Math.sqrt(dx*dx + dz*dz);
+    if (dist < range) {
+      const px = cx + (dx/range) * r;
+      const py = cy + (dz/range) * r;
+      const isLocked = state.lockedTarget === e;
+      radarCtx.fillStyle = isLocked ? '#ff0' : '#f00';
+      radarCtx.beginPath();
+      radarCtx.arc(px, py, isLocked?5:3, 0, Math.PI*2);
+      radarCtx.fill();
+    }
+  });
+}
+
+// ========== UPDATE ==========
+function updatePlayer(dt) {
+  // Mouse pitch/yaw
+  const yawSpeed = 1.5 * dt;
+  const pitchSpeed = 1.5 * dt;
+
+  const yawQ = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), -state.mouseX * yawSpeed * 2);
+  const pitchQ = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0), -state.mouseY * pitchSpeed * 2);
+  player.quaternion.multiply(yawQ);
+  player.quaternion.multiply(pitchQ);
+
+  // Roll dengan A/D
+  if (state.keys['a']) player.rotateZ(1.2*dt);
+  if (state.keys['d']) player.rotateZ(-1.2*dt);
+
+  // Kecepatan
+  let targetSpeed = 150;
+  if (state.keys['w']) targetSpeed = 300;
+  if (state.keys['s']) targetSpeed = 60;
+  state.speed += (targetSpeed - state.speed) * dt * 2;
+
+  // Gerak maju
+  const forward = new THREE.Vector3(0,0,-1).applyQuaternion(player.quaternion);
+  player.position.add(forward.multiplyScalar(state.speed * dt));
+
+  // Batas ketinggian
+  if (player.position.y < 50) player.position.y = 50;
+  if (player.position.y > 2000) player.position.y = 2000;
+
+  // Kamera chase
+  const camOffset = new THREE.Vector3(0, 4, 18).applyQuaternion(player.quaternion);
+  const camTarget = player.position.clone().add(camOffset);
+  camera.position.lerp(camTarget, 0.15);
+  const lookAt = player.position.clone().add(forward.clone().multiplyScalar(30));
+  camera.lookAt(lookAt);
+  camera.up.set(0,1,0).applyQuaternion(player.quaternion);
+}
+
+function updateEnemies(dt) {
+  enemies.forEach(e => {
+    // AI sederhana: kadang ngejar player, kadang jelajah
+    e.userData.changeTimer -= dt;
+    if (e.userData.changeTimer <= 0) {
+      e.userData.changeTimer = 2 + Math.random()*3;
+      const toPlayer = player.position.clone().sub(e.position).normalize();
+      if (Math.random() < 0.6) {
+        e.userData.dir.copy(toPlayer);
+      } else {
+        e.userData.dir.set(Math.random()-0.5, (Math.random()-0.5)*0.3, Math.random()-0.5).normalize();
+      }
+    }
+
+    // Smooth rotate ke arah dir
+    const targetQuat = new THREE.Quaternion().setFromUnitVectors(
+      new THREE.Vector3(0,0,-1), e.userData.dir
+    );
+    e.quaternion.slerp(targetQuat, dt*2);
+
+    // Gerak
+    const fwd = new THREE.Vector3(0,0,-1).applyQuaternion(e.quaternion);
+    e.position.add(fwd.multiplyScalar(e.userData.speed * dt));
+
+    // Batas
+    if (e.position.y < 200) e.position.y = 200;
+    if (e.position.y > 1800) e.position.y = 1800;
+
+    // Musuh nembak player kalau dekat
+    const dist = e.position.distanceTo(player.position);
+    if (dist < 400 && Math.random() < 0.02) {
+      const dir = player.position.clone().sub(e.position).normalize();
+      const b = new THREE.Mesh(
+        new THREE.SphereGeometry(0.4,6,6),
+        new THREE.MeshBasicMaterial({color:0xff4400})
+      );
+      b.position.copy(e.position).add(dir.clone().multiplyScalar(4));
+      b.userData.vel = dir.multiplyScalar(400);
+      b.userData.enemy = true;
+      scene.add(b);
+      bullets.push(b);
+    }
+  });
+}
+
+function updateProjectiles(dt) {
+  // Bullets
+  for (let i=bullets.length-1;i>=0;i--) {
+    const b = bullets[i];
+    b.position.add(b.userData.vel.clone().multiplyScalar(dt));
+    if (b.position.length() > 3000) {
+      scene.remove(b); bullets.splice(i,1); continue;
+    }
+
+    if (b.userData.enemy) {
+      // Cek kena player
+      if (b.position.distanceTo(player.position) < 6) {
+        state.hp -= 5;
+        scene.remove(b); bullets.splice(i,1);
+        if (state.hp <= 0) gameOver();
+        continue;
+      }
+    } else {
+      // Cek kena musuh
+      for (let j=enemies.length-1;j>=0;j--) {
+        const e = enemies[j];
+        if (b.position.distanceTo(e.position) < 6) {
+          e.userData.hp--;
+          scene.remove(b); bullets.splice(i,1);
+          if (e.userData.hp <= 0) {
+            scene.remove(e);
+            enemies.splice(j,1);
+            state.score += 100;
+            spawnEnemy();
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  // Missiles
+  for (let i=missiles.length-1;i>=0;i--) {
+    const m = missiles[i];
+    m.userData.life -= dt;
+    if (m.userData.life <= 0 || !m.userData.target || !enemies.includes(m.userData.target)) {
+      scene.remove(m); missiles.splice(i,1); continue;
+    }
+
+    // Homing
+    const toTarget = m.userData.target.position.clone().sub(m.position).normalize();
+    m.userData.vel.lerp(toTarget.multiplyScalar(400), dt*4);
+    m.position.add(m.userData.vel.clone().multiplyScalar(dt));
+    m.lookAt(m.position.clone().add(m.userData.vel));
+
+    // Trail smoke
+    if (Math.random() < 0.5) {
+      const smoke = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: cloudTex, color: 0xaaaaaa, transparent:true, opacity:0.6
+      }));
+      smoke.position.copy(m.position);
+      smoke.scale.set(3,3,1);
+      scene.add(smoke);
+      setTimeout(()=>scene.remove(smoke), 800);
+    }
+
+    // Hit
+    if (m.position.distanceTo(m.userData.target.position) < 10) {
+      const t = m.userData.target;
+      scene.remove(t);
+      const idx = enemies.indexOf(t);
+      if (idx >= 0) enemies.splice(idx,1);
+      state.score += 200;
+      spawnEnemy();
+      scene.remove(m); missiles.splice(i,1);
+    }
+  }
+}
+
+// ========== RADAR LOCK ==========
+function updateLock() {
+  let best = null;
+  let bestDot = 0.95;
+  const forward = new THREE.Vector3(0,0,-1).applyQuaternion(player.quaternion);
+  enemies.forEach(e => {
+    const toE = e.position.clone().sub(player.position).normalize();
+    const dot = toE.dot(forward);
+    const dist = e.position.distanceTo(player.position);
+    if (dot > bestDot && dist < 2000) {
+      bestDot = dot;
+      best = e;
+    }
+  });
+  state.lockedTarget = best;
+}
+
+// ========== UI ==========
+function updateUI() {
+  document.getElementById('ammo').textContent = state.ammo;
+  document.getElementById('missiles').textContent = state.missiles;
+  document.getElementById('hp').textContent = Math.max(0, state.hp);
+  document.getElementById('enemyCount').textContent = enemies.length;
+  document.getElementById('score').textContent = state.score;
+  document.getElementById('speed').textContent = Math.round(state.speed);
+  document.getElementById('lockStatus').textContent = state.lockedTarget ? '🔒 LOCKED' : '--';
+}
+
+function gameOver() {
+  state.running = false;
+  document.getElementById('center').innerHTML = 
+    `<div style="font-size:48px;color:#f00;">MISSION FAILED</div>
+     <div>Skor: ${state.score}</div>
+     <div style="font-size:14px;margin-top:20px;">Refresh halaman untuk main lagi</div>`;
+}
+
+// ========== GAME LOOP ==========
+let lastTime = performance.now();
+function loop() {
+  requestAnimationFrame(loop);
+  const now = performance.now();
+  const dt = Math.min((now - lastTime)/1000, 0.05);
+  lastTime = now;
+
+  if (state.running) {
+    if (firing) fireBullet();
+    updatePlayer(dt);
+    updateEnemies(dt);
+    updateProjectiles(dt);
+    updateLock();
+    updateUI();
+    drawRadar();
+  }
+
+  // Cloud bergerak
+  cloudGroup.position.z = ((cloudGroup.position.z + dt*10) % 400);
+
+  renderer.render(scene, camera);
+}
+
+// ========== RESIZE ==========
+addEventListener('resize', () => {
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// ========== START ==========
+document.getElementById('startBtn').addEventListener('click', () => {
+  document.getElementById('startScreen').style.display = 'none';
+  state.running = true;
+});
+
+loop();
+</script>
+</body>
+</html>
